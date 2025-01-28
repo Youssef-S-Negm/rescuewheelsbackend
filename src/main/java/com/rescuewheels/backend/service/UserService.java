@@ -21,6 +21,7 @@ public class UserService implements IUserService {
     }
 
     @Override
+    @Transactional
     public User save(User user) {
         return userRepository.save(user);
     }
