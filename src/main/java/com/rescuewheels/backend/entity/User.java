@@ -2,11 +2,14 @@ package com.rescuewheels.backend.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 
 @Document(collection = "users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     private String id;
@@ -144,5 +147,15 @@ public class User {
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", rating=" + rating +
                 '}';
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.roles.stream().map(role -> (GrantedAuthority) () -> role).toList();
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 }
