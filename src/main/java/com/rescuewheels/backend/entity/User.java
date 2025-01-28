@@ -1,7 +1,9 @@
 package com.rescuewheels.backend.entity;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -29,6 +31,10 @@ public class User implements UserDetails {
     private String phoneNumber;
 
     private double rating;
+
+    @ReadOnlyProperty
+    @DocumentReference(lookup = "{'ownerId':?#{#self._id.toString()}}")
+    private List<Vehicle> vehicles;
 
     public User() {
     }
@@ -132,6 +138,14 @@ public class User implements UserDetails {
 
     public void setRating(double rating) {
         this.rating = rating;
+    }
+
+    public List<Vehicle> getVehicles() {
+        return vehicles;
+    }
+
+    public void setVehicles(List<Vehicle> vehicles) {
+        this.vehicles = vehicles;
     }
 
     @Override
