@@ -9,7 +9,7 @@ public interface IVehicleService {
 
     Vehicle save(Vehicle vehicle);
 
-    Vehicle deleteById(String id);
+    void deleteById(String id);
 
     List<Vehicle> findAll();
 
