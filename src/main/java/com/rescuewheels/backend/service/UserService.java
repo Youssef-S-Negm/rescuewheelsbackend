@@ -2,8 +2,11 @@ package com.rescuewheels.backend.service;
 
 import com.rescuewheels.backend.dao.UserRepository;
 import com.rescuewheels.backend.entity.User;
+import com.rescuewheels.backend.exception.ForbiddenOperationException;
 import com.rescuewheels.backend.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,18 +31,23 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public User deleteById(String id) {
+    public void deleteById(String id) {
         Optional<User> result = userRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authenticatedUser = (User) authentication.getPrincipal();
 
         if (result.isEmpty()){
             throw new UserNotFoundException("User id - " + id + " not found");
         }
 
-        User user = result.get();
+        User userToBeDeleted = result.get();
 
-        userRepository.delete(user);
+        if (!userToBeDeleted.getId().equals(authenticatedUser.getId())
+                && !authenticatedUser.getRoles().contains("ROLE_ADMIN")) {
+            throw new ForbiddenOperationException("User id - " + id + " cannot be deleted by the authenticated user");
+        }
 
-        return user;
+        userRepository.delete(userToBeDeleted);
     }
 
     @Override
