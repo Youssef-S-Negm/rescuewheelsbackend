@@ -34,9 +34,15 @@ public class User implements UserDetails {
 
     private double rating;
 
+    private String onGoingRequestId;
+
     @ReadOnlyProperty
     @DocumentReference(lookup = "{'ownerId':?#{#self._id.toString()}}")
     private List<Vehicle> vehicles;
+
+    @ReadOnlyProperty
+    @DocumentReference(lookup = "{'$or': [{'requestedBy': ?#{#self._id.toString()}, {'responderId': ?#{#self._id.toString()}]}")
+    private List<EmergencyRequest> requests;
 
     public User() {
     }
@@ -148,6 +154,22 @@ public class User implements UserDetails {
 
     public void setVehicles(List<Vehicle> vehicles) {
         this.vehicles = vehicles;
+    }
+
+    public String getOnGoingRequestId() {
+        return onGoingRequestId;
+    }
+
+    public void setOnGoingRequestId(String onGoingRequestId) {
+        this.onGoingRequestId = onGoingRequestId;
+    }
+
+    public List<EmergencyRequest> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(List<EmergencyRequest> requests) {
+        this.requests = requests;
     }
 
     @Override
