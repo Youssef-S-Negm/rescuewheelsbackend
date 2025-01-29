@@ -4,6 +4,7 @@ import com.rescuewheels.backend.dto.ErrorResponse;
 import com.rescuewheels.backend.exception.NotUserVehicleException;
 import com.rescuewheels.backend.exception.UserNotFoundException;
 import com.rescuewheels.backend.exception.VehicleNotFoundException;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -54,5 +55,16 @@ public class ErrorHandler {
         );
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleExpiredJwtException(ExpiredJwtException exception) {
+        ErrorResponse response = new ErrorResponse(
+                exception.getMessage(),
+                HttpStatus.UNAUTHORIZED.value(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 }
