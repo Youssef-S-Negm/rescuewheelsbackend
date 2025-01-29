@@ -3,7 +3,7 @@ package com.rescuewheels.backend.service;
 import com.rescuewheels.backend.dao.VehicleRepository;
 import com.rescuewheels.backend.entity.User;
 import com.rescuewheels.backend.entity.Vehicle;
-import com.rescuewheels.backend.exception.NotUserVehicleException;
+import com.rescuewheels.backend.exception.ForbiddenOperationException;
 import com.rescuewheels.backend.exception.VehicleNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -49,7 +49,7 @@ public class VehicleService implements IVehicleService {
         Vehicle vehicle = result.get();
 
         if (!vehicle.getOwnerId().equals(user.getId()) && !user.getRoles().contains("ROLE_ADMIN")) {
-            throw new NotUserVehicleException("Vehicle id - " + id + " doesn't belong to user id - " + user.getId());
+            throw new ForbiddenOperationException("Vehicle id - " + id + " doesn't belong to user id - " + user.getId());
         }
 
         vehicleRepository.deleteById(id);
@@ -77,7 +77,7 @@ public class VehicleService implements IVehicleService {
         User user = (User) authentication.getPrincipal();
 
         if (!ownerId.equals(user.getId()) && !user.getRoles().contains("ROLE_ADMIN")) {
-            throw new NotUserVehicleException("User id - " + user.getId() +
+            throw new ForbiddenOperationException("User id - " + user.getId() +
                     " doesn't have permission to view user id - " + ownerId + " vehicles");
         }
 
