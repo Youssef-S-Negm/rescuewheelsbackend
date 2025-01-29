@@ -1,7 +1,7 @@
 package com.rescuewheels.backend.rest;
 
 import com.rescuewheels.backend.dto.ErrorResponse;
-import com.rescuewheels.backend.exception.NotUserVehicleException;
+import com.rescuewheels.backend.exception.ForbiddenOperationException;
 import com.rescuewheels.backend.exception.UserNotFoundException;
 import com.rescuewheels.backend.exception.VehicleNotFoundException;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -36,17 +36,6 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleNotUserVehicleException(NotUserVehicleException exception) {
-        ErrorResponse response = new ErrorResponse(
-                exception.getMessage(),
-                HttpStatus.FORBIDDEN.value(),
-                System.currentTimeMillis()
-        );
-
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler
     public ResponseEntity<ErrorResponse> handleException(Exception exception) {
         ErrorResponse response = new ErrorResponse(
                 exception.getMessage(),
@@ -66,5 +55,16 @@ public class ErrorHandler {
         );
 
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleForbiddenOperationException(ForbiddenOperationException exception) {
+        ErrorResponse response = new ErrorResponse(
+                exception.getMessage(),
+                HttpStatus.FORBIDDEN.value(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 }

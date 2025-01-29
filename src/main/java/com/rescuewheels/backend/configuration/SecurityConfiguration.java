@@ -34,6 +34,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/vehicles").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/vehicles/**").hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(HttpMethod.POST, "/users/technician").hasRole("ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider)

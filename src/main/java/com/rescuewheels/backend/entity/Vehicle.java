@@ -1,6 +1,7 @@
 package com.rescuewheels.backend.entity;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "vehicles")
@@ -19,6 +20,7 @@ public class Vehicle {
 
     private String energySource;
 
+    @Indexed(unique = true)
     private String licensePlate;
 
     private int year;

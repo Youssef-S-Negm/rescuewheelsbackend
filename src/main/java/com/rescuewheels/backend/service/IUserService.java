@@ -8,7 +8,7 @@ public interface IUserService {
 
     User save(User user);
 
-    User deleteById(String id);
+    void deleteById(String id);
 
     User findByEmail(String email);
 
