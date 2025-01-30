@@ -41,16 +41,14 @@ public class EmergencyRequestController {
     }
 
     @GetMapping("/nearby")
-    public ResponseEntity<Iterable<EmergencyRequest>> getNearbyRequests(@RequestParam("latitude") double latitude,
-                                                                        @RequestParam("longitude") double longitude) {
-        Iterable<EmergencyRequest> requests = emergencyRequestService
-                .getNearbyRequests(new Coordinate(latitude, longitude));
+    public ResponseEntity<Iterable<EmergencyRequest>> getNearbyRequests(@RequestBody Coordinate coordinate) {
+        Iterable<EmergencyRequest> requests = emergencyRequestService.getNearbyRequests(coordinate);
 
         return new ResponseEntity<>(requests, HttpStatus.OK);
     }
 
-    @GetMapping("/estimated-price/{type}?vehicleId={vehicleId}")
-    public ResponseEntity<Double> getEstimatedPrice(@PathVariable("type") String type,
+    @GetMapping("/estimated-price")
+    public ResponseEntity<Double> getEstimatedPrice(@RequestParam("type") String type,
                                                     @RequestParam("vehicleId") String vehicleId,
                                                     @RequestBody GetEstimatedPriceRequestBody body) {
 
@@ -97,7 +95,7 @@ public class EmergencyRequestController {
         return new ResponseEntity<>(request, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}?rating={rating}")
+    @PutMapping("/{id}")
     public ResponseEntity<EmergencyRequest> rateUser(@PathVariable("id") String id,
                                       @RequestParam("rating") double rating) {
         EmergencyRequest request = emergencyRequestService.rateUser(id, rating);
