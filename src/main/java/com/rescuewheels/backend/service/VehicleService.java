@@ -3,8 +3,8 @@ package com.rescuewheels.backend.service;
 import com.rescuewheels.backend.dao.VehicleRepository;
 import com.rescuewheels.backend.entity.User;
 import com.rescuewheels.backend.entity.Vehicle;
+import com.rescuewheels.backend.exception.EntityNotFoundException;
 import com.rescuewheels.backend.exception.ForbiddenOperationException;
-import com.rescuewheels.backend.exception.VehicleNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,7 +43,7 @@ public class VehicleService implements IVehicleService {
         Optional<Vehicle> result = vehicleRepository.findById(id);
 
         if (result.isEmpty()) {
-            throw new VehicleNotFoundException("Vehicle id - " + id + " not found");
+            throw new EntityNotFoundException("Vehicle id - " + id + " not found");
         }
 
         Vehicle vehicle = result.get();
@@ -65,7 +65,7 @@ public class VehicleService implements IVehicleService {
         Optional<Vehicle> result = vehicleRepository.findById(id);
 
         if (result.isEmpty()) {
-            throw new VehicleNotFoundException("Vehicle id - " + id + " not found");
+            throw new EntityNotFoundException("Vehicle id - " + id + " not found");
         }
 
         return result.get();

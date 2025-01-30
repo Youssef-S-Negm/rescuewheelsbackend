@@ -33,8 +33,23 @@ public class SecurityConfiguration {
                         configurer
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/vehicles").hasRole("ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/vehicles/**").hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(HttpMethod.DELETE, "/vehicles/**")
+                                    .hasAnyRole("ADMIN", "USER")
                                 .requestMatchers(HttpMethod.POST, "/users/technician").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/emergency-requests")
+                                    .hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(HttpMethod.GET, "/emergency-requests").hasRole("ADMIN")
+                                .requestMatchers("/emergency-requests/nearby")
+                                    .hasAnyRole("ADMIN", "TECHNICIAN")
+                                .requestMatchers("/emergency-requests/estimated-price")
+                                    .hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(
+                                        "/emergency-requests/{id}/accept",
+                                        "/emergency-requests/{id}/cancel-responder",
+                                        "/emergency-requests/{id}/in-progress",
+                                        "/emergency-requests/{id}/complete").hasAnyRole("ADMIN", "TECHNICIAN")
+                                .requestMatchers("/emergency-requests/{id}/cancel")
+                                    .hasAnyRole("ADMIN", "USER")
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider)
