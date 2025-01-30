@@ -11,6 +11,7 @@ import com.rescuewheels.backend.entity.Vehicle;
 import com.rescuewheels.backend.entity.common.Coordinate;
 import com.rescuewheels.backend.enums.EmergencyRequestState;
 import com.rescuewheels.backend.enums.EmergencyRequestType;
+import com.rescuewheels.backend.enums.UserRoles;
 import com.rescuewheels.backend.enums.VehicleEnergySource;
 import com.rescuewheels.backend.exception.EntityNotFoundException;
 import com.rescuewheels.backend.exception.ForbiddenOperationException;
@@ -118,12 +119,22 @@ EmergencyRequestService implements IEmergencyRequestService {
     @Transactional
     public EmergencyRequest cancelRequest(String id) {
         Optional<EmergencyRequest> result = emergencyRequestRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authUser = (User) authentication.getPrincipal();
 
         if (result.isEmpty()) {
             throw new EntityNotFoundException("Emergency request id - " + id + " not found");
         }
 
         EmergencyRequest request = result.get();
+
+        if (!authUser.getId().equals(request.getRequestedBy())
+                && !authUser.getRoles().contains(UserRoles.ADMIN.getRole())) {
+
+            throw new ForbiddenOperationException("Request id - " + request.getId() +
+                    " is not requested by the authenticated user");
+        }
+
         Optional<User> requesterResult = userRepository.findById(request.getRequestedBy());
 
         if (requesterResult.isEmpty()) {
@@ -158,12 +169,22 @@ EmergencyRequestService implements IEmergencyRequestService {
     @Transactional
     public EmergencyRequest cancelResponder(String id) {
         Optional<EmergencyRequest> result = emergencyRequestRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authUser = (User) authentication.getPrincipal();
 
         if (result.isEmpty()) {
             throw new EntityNotFoundException("Emergency request id - " + id + " not found");
         }
 
         EmergencyRequest request = result.get();
+
+        if (!authUser.getId().equals(request.getResponderId())
+                && !authUser.getRoles().contains(UserRoles.ADMIN.getRole())) {
+
+            throw new ForbiddenOperationException("Authenticated user id - " + authUser.getId() + " is not a responder");
+
+        }
+
         Optional<User> responderResult = userRepository.findById(request.getResponderId());
 
         if (responderResult.isEmpty()) {
@@ -186,12 +207,21 @@ EmergencyRequestService implements IEmergencyRequestService {
     @Transactional
     public EmergencyRequest markInProgress(String id) {
         Optional<EmergencyRequest> result = emergencyRequestRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authUser = (User) authentication.getPrincipal();
 
         if (result.isEmpty()) {
             throw new EntityNotFoundException("Emergency request id - " + id + " not found");
         }
 
         EmergencyRequest request = result.get();
+
+        if (!authUser.getId().equals(request.getResponderId())
+                && !authUser.getRoles().contains(UserRoles.ADMIN.getRole())) {
+
+            throw new ForbiddenOperationException("Authenticated user id - " + authUser.getId() + " is not a responder");
+
+        }
 
         request.setState(EmergencyRequestState.IN_PROGRESS.getState());
 
@@ -202,12 +232,22 @@ EmergencyRequestService implements IEmergencyRequestService {
     @Transactional
     public EmergencyRequest markComplete(String id) {
         Optional<EmergencyRequest> result = emergencyRequestRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authUser = (User) authentication.getPrincipal();
 
         if (result.isEmpty()) {
             throw new EntityNotFoundException("Emergency request id - " + id + " not found");
         }
 
         EmergencyRequest request = result.get();
+
+        if (!authUser.getId().equals(request.getResponderId())
+                && !authUser.getRoles().contains(UserRoles.ADMIN.getRole())) {
+
+            throw new ForbiddenOperationException("Authenticated user id - " + authUser.getId() + " is not a responder");
+
+        }
+
         Optional<User> requesterResult = userRepository.findById(request.getRequestedBy());
         Optional<User> responderResult = userRepository.findById(request.getResponderId());
 
@@ -241,6 +281,16 @@ EmergencyRequestService implements IEmergencyRequestService {
         }
 
         EmergencyRequest request = result.get();
+
+        if (!authenticatedUser.getId().equals(request.getRequestedBy())
+                && !authenticatedUser.getId().equals(request.getResponderId())
+                && !authenticatedUser.getRoles().contains(UserRoles.ADMIN.getRole())) {
+
+            throw new ForbiddenOperationException(
+                    "Authenticated user is neither a requester nor a responder for request id - " + request.getId()
+            );
+        }
+
         Optional<User> requesterResult = userRepository.findById(request.getRequestedBy());
         Optional<User> responderResult = userRepository.findById(request.getResponderId());
 
