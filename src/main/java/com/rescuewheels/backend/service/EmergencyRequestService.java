@@ -13,6 +13,7 @@ import com.rescuewheels.backend.enums.EmergencyRequestState;
 import com.rescuewheels.backend.enums.EmergencyRequestType;
 import com.rescuewheels.backend.enums.VehicleEnergySource;
 import com.rescuewheels.backend.exception.EntityNotFoundException;
+import com.rescuewheels.backend.exception.ForbiddenOperationException;
 import com.rescuewheels.backend.util.Location;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -52,6 +53,8 @@ EmergencyRequestService implements IEmergencyRequestService {
         User user = userResult.get();
 
         user.setOnGoingRequestId(request.getId());
+        userRepository.save(user);
+
         return request;
     }
 
@@ -77,7 +80,10 @@ EmergencyRequestService implements IEmergencyRequestService {
 
         // Filter requests that are within 5 km of the given coordinate
         return allRequests.stream()
-                .filter(request -> Location.calculateDistance(coordinate, request.getCoordinate()) <= 5)
+                .filter(request ->
+                        Location.calculateDistance(coordinate, request.getCoordinate()) <= 5
+                                && request.getState().equals(EmergencyRequestState.PENDING.getState())
+                )
                 .toList();
     }
 
@@ -85,19 +91,25 @@ EmergencyRequestService implements IEmergencyRequestService {
     @Transactional
     public EmergencyRequest acceptRequest(String id) {
         Optional<EmergencyRequest> emergencyResult = emergencyRequestRepository.findById(id);
-        Optional<User> userResult = userRepository.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User responder = (User) authentication.getPrincipal();
 
         if (emergencyResult.isEmpty()) {
             throw new EntityNotFoundException("Emergency request id - " + id + " not found");
         }
 
-        if (userResult.isEmpty()) {
-            throw new EntityNotFoundException("User id - " + id + " not found");
-        }
-
         EmergencyRequest request = emergencyResult.get();
 
+        if (!request.getState().equals(EmergencyRequestState.PENDING.getState())) {
+            throw new ForbiddenOperationException("Request id - " + id + " is not pending");
+        }
+
         request.setState(EmergencyRequestState.RESPONDING.getState());
+        request.setResponderId(responder.getId());
+
+        responder.setOnGoingRequestId(request.getId());
+
+        userRepository.save(responder);
 
         return emergencyRequestRepository.save(request);
     }
@@ -113,22 +125,31 @@ EmergencyRequestService implements IEmergencyRequestService {
 
         EmergencyRequest request = result.get();
         Optional<User> requesterResult = userRepository.findById(request.getRequestedBy());
-        Optional<User> responderResult = userRepository.findById(request.getResponderId());
 
-        if (requesterResult.isEmpty() || responderResult.isEmpty()) {
+        if (requesterResult.isEmpty()) {
             throw new EntityNotFoundException("User id - " + request.getRequestedBy() + " not found");
         }
 
         User requester = requesterResult.get();
-        User responder = responderResult.get();
 
         requester.setOnGoingRequestId(null);
-        responder.setOnGoingRequestId(null);
-
-        request.setState(EmergencyRequestState.CANCELLED.getState());
 
         userRepository.save(requester);
-        userRepository.save(responder);
+
+        if (request.getResponderId() != null) {
+            Optional<User> responderResult = userRepository.findById(request.getResponderId());
+
+            if (responderResult.isEmpty()) {
+                throw new EntityNotFoundException("User id - " + request.getRequestedBy() + " not found");
+            }
+
+            User responder = responderResult.get();
+
+            responder.setOnGoingRequestId(null);
+            userRepository.save(responder);
+        }
+
+        request.setState(EmergencyRequestState.CANCELLED.getState());
 
         return emergencyRequestRepository.save(request);
     }
@@ -155,6 +176,8 @@ EmergencyRequestService implements IEmergencyRequestService {
 
         request.setState(EmergencyRequestState.PENDING.getState());
         request.setResponderId(null);
+
+        userRepository.save(responder);
 
         return emergencyRequestRepository.save(request);
     }
@@ -263,7 +286,9 @@ EmergencyRequestService implements IEmergencyRequestService {
     }
 
     private double calculateRatingForUser(User user, double rating) {
-        List<EmergencyRequest> requests = user.getRequests();
+        List<EmergencyRequest> requests = user.getRequests().stream()
+                .filter(request -> request.getState().equals(EmergencyRequestState.DONE.getState()))
+                .toList();
         double totalRating = user.getRating() * requests.size();
 
         return Math.round((totalRating + rating) / (requests.size() + 1.0) * 100.0) / 100.0;
