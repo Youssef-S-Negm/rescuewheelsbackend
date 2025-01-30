@@ -53,10 +53,18 @@ public class EmergencyRequestController {
     @GetMapping("/estimated-price")
     public ResponseEntity<Double> getEstimatedPrice(@RequestParam("type") String type,
                                                     @RequestParam("vehicleId") String vehicleId,
-                                                    @RequestBody GetEstimatedPriceRequestBody body) {
+                                                    @RequestParam("startLat") double startLatitude,
+                                                    @RequestParam("startLong") double startLongitude,
+                                                    @RequestParam("endLat") double endLatitude,
+                                                    @RequestParam("endLong") double endLongitude) {
 
         double estimatedPrice = emergencyRequestService
-                .getEstimatedPrice(type, vehicleId, body.getStartCoordinate(), body.getEndCoordinate());
+                .getEstimatedPrice(
+                        type,
+                        vehicleId,
+                        new Coordinate(startLatitude, startLongitude),
+                        new Coordinate(endLatitude, endLongitude)
+                );
 
         return new ResponseEntity<>(estimatedPrice, HttpStatus.OK);
     }
