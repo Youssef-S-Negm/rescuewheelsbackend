@@ -2,11 +2,13 @@ package com.rescuewheels.backend.service;
 
 import com.rescuewheels.backend.dao.UserRepository;
 import com.rescuewheels.backend.entity.User;
+import com.rescuewheels.backend.enums.UserRoles;
 import com.rescuewheels.backend.exception.ForbiddenOperationException;
 import com.rescuewheels.backend.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +19,20 @@ import java.util.Optional;
 public class UserService implements IUserService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public User save(User user) {
+    public User saveTechnician(User user) {
+        user.setRoles(List.of(UserRoles.TECHNICIAN.getRole()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         return userRepository.save(user);
     }
 

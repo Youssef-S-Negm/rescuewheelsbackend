@@ -23,9 +23,7 @@ public class UserController {
 
     @PostMapping("/technician")
     public ResponseEntity<User> saveTechnician(@RequestBody User user) {
-        user.setRoles(List.of(UserRoles.TECHNICIAN.getRole()));
-
-        User savedUser = userService.save(user);
+        User savedUser = userService.saveTechnician(user);
 
         return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
