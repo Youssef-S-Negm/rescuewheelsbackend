@@ -41,8 +41,11 @@ public class EmergencyRequestController {
     }
 
     @GetMapping("/nearby")
-    public ResponseEntity<Iterable<EmergencyRequest>> getNearbyRequests(@RequestBody Coordinate coordinate) {
-        Iterable<EmergencyRequest> requests = emergencyRequestService.getNearbyRequests(coordinate);
+    public ResponseEntity<Iterable<EmergencyRequest>> getNearbyRequests(@RequestParam("lat") double latitude,
+                                                                        @RequestParam("long") double longitude) {
+
+        Iterable<EmergencyRequest> requests = emergencyRequestService
+                .getNearbyRequests(new Coordinate(latitude, longitude));
 
         return new ResponseEntity<>(requests, HttpStatus.OK);
     }
