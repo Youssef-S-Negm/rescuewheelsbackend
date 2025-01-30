@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface IUserService {
 
-    User save(User user);
+    User saveTechnician(User user);
 
     void deleteById(String id);
 
